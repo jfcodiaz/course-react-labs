@@ -2,12 +2,16 @@ import React from 'react';
 import header from '../images/badge-header.svg'
 import Badge  from  './../components/Badge'
 import BadgetForm from './../components/BadgeForm'
+import PageLoading from '../components/PageLoading';
+import api from '../api';
 
 import './styles/BadgeNew.css'
 
 class BadgeNew extends React.Component {
 
   state = { form: {
+      loading: false,
+      error: null,
       firstName: '',
       lastName: '',
       jobTitle: '',
@@ -24,7 +28,23 @@ class BadgeNew extends React.Component {
     })
   }
 
+  handleSubmit = async e => {
+    e.preventDefault();
+    this.setState({ loading: true, error: null });
+
+    try {
+      await api.badges.create(this.state.form);
+      this.setState({ loading: false });
+      this.props.history.push('/badges');
+    } catch (error) {
+      this.setState({ loading: false, error: error });
+    }
+  };
+
   render() {
+    if (this.state.loading) {
+      return <PageLoading />;
+    }
     return (
       <React.Fragment>
         <div className="BadgeNew__hero">
@@ -34,16 +54,19 @@ class BadgeNew extends React.Component {
           <div className="row">
             <div className="col-6">
               <Badge 
-                firstName={this.state.form.firstName} 
-                lastName={this.state.form.lastName}
-                jobTitle={this.state.form.jobTitle}
-                twitter={this.state.form.twitter}
-                email={this.state.form.email}
-                avatarURL="http://gravatar.com/avatar/001650e253ed06b724d0e8eae545c6db?s=120"
-              />
+                firstName={this.state.form.firstName || 'FIRST_NAME'}
+                lastName={this.state.form.lastName || 'LAST_NAME'}
+                twitter={this.state.form.twitter || 'twitter'}
+                jobTitle={this.state.form.jobTitle || 'JOB_TITLE'}
+                email={this.state.form.email || 'EMAIL'}              />
             </div>
             <div className="col-6">
-              <BadgetForm onChange={this.handleChange} formValues={this.state.form}/>
+              <BadgetForm
+                onChange={this.handleChange}
+                onSubmit={this.handleSubmit} 
+                formValues={this.state.form}
+                error={this.state.error}
+              />
             </div>
           </div>
         </div>
